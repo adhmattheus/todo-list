@@ -145,6 +145,7 @@ export function TodoList() {
                     name="taskTitle"
                     type="text"
                     autoComplete="off"
+                    maxLength={50}
                 />
                 <ButtonSubmit type="submit">
                     Add task
