@@ -83,7 +83,7 @@ export function TodoList() {
             }
 
         } catch (error) {
-            console.error('Error adding new task:', error);
+            console.error('Error adding new tasks:', error);
         }
     };
 
