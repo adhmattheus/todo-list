@@ -1,19 +1,21 @@
 import { ActionsDiv, BoxContainer, ButtonDiv, CompleteButton, DataContainer, DeleteButton, EditButton, HeaderContainer, TasksDiv, TitleDiv } from "../styles/BoxContainer";
 import { CheckCircleFilled, DeleteFilled, EditFilled, FireFilled } from "@ant-design/icons";
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ButtonSubmit, ContainerForm } from "../styles/FormContainer";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ModalEditTask } from "./Modal";
 import { api } from "../utils/axios";
 import { Task } from "../types/task";
-import { Tooltip } from "antd";
+import { Button, Form, FormInstance, Input, Space, Tooltip } from "antd";
+import { Store } from "antd/es/form/interface";
 
 
 export function TodoList() {
-    const formRef = useRef<HTMLFormElement>(null);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [taskTitleToEdit, setTaskTitleToEdit] = useState("");
     const [taskIdToEdit, setTaskIdToEdit] = useState<number>(-1);
+    const [form] = Form.useForm<FormInstance<any>>();
+    const formRef = useRef<FormInstance<any>>(null);
+
 
     const handleEditTask = (taskId: number, taskTitle: string, taskStatus: string) => {
 
@@ -59,11 +61,8 @@ export function TodoList() {
         setIsModalOpen(false);
     };
 
-    const handleAddTask = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        const formData = new FormData(e.currentTarget);
-        const taskTitle = formData.get("taskTitle") as string;
+    const handleAddTask = async (values: Store) => {
+        const taskTitle = values.taskTitle;
 
         if (!taskTitle || taskTitle.trim() === "") {
             alert("Please enter a title for the task.");
@@ -79,7 +78,7 @@ export function TodoList() {
             setTasks(prevTasks => [...prevTasks, newTask]);
 
             if (formRef.current) {
-                formRef.current.reset();
+                formRef.current.resetFields();
             }
 
         } catch (error) {
@@ -140,17 +139,18 @@ export function TodoList() {
 
     return (
         <>
-            <ContainerForm ref={formRef} onSubmit={handleAddTask} >
-                <input
-                    name="taskTitle"
-                    type="text"
-                    autoComplete="off"
-                    maxLength={50}
-                />
-                <ButtonSubmit type="submit">
-                    Add task
-                </ButtonSubmit>
-            </ContainerForm>
+            <Form form={form} onFinish={handleAddTask} ref={formRef}>
+                <Space>
+                    <Form.Item name="taskTitle">
+                        <Input autoComplete="off" placeholder="Insert a task" />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Add Task
+                        </Button>
+                    </Form.Item>
+                </Space>
+            </Form>
 
             {
                 tasks.length > 0 ? (
@@ -160,6 +160,8 @@ export function TodoList() {
                                 <TasksDiv>Tasks</TasksDiv>
                                 <ActionsDiv>Actions</ActionsDiv>
                             </HeaderContainer>
+
+                            
 
                             {tasks.map(task => (
                                 <DataContainer key={task.id}>
