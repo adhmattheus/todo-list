@@ -41,8 +41,8 @@ export const DataContainer = styled.div`
 `;
 
 export const TitleDiv = styled.div`
-    width: 65%;  
-    display: flex;  
+
+    
 `;
 
 export const ButtonDiv = styled.div`

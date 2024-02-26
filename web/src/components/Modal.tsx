@@ -1,5 +1,5 @@
 import { ModalWrapper, InputField, Button, CancelButton, OptionButton } from "../styles/Modal";
-import { EditTaskModalProps } from "../types/modal";
+import { EditTaskModalProps } from "../types/editTaskModalProps";
 import { useState } from "react";
 
 export function ModalEditTask({ isOpen, onClose, onSave, currentTitle }: EditTaskModalProps) {

@@ -1,10 +1,10 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ButtonSubmit, ContainerForm } from "../styles/FormContainer";
+import { TableData } from "./TableData";
 import { ModalEditTask } from "./Modal";
 import { api } from "../utils/axios";
 import { Task } from "../types/task";
-import { TableData } from "./TableData";
-
+import { message } from "antd";
 
 export function TodoList() {
     const formRef = useRef<HTMLFormElement>(null);
@@ -12,6 +12,7 @@ export function TodoList() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [taskTitleToEdit, setTaskTitleToEdit] = useState("");
     const [taskIdToEdit, setTaskIdToEdit] = useState<number>(-1);
+
 
     const handleEditTask = (taskId: number, taskTitle: string, taskStatus: string) => {
 
@@ -64,7 +65,7 @@ export function TodoList() {
         const taskTitle = formData.get("taskTitle") as string;
 
         if (!taskTitle || taskTitle.trim() === "") {
-            alert("Please enter a title for the task.");
+            message.error('Please enter a title for the task.');
             return;
         }
 
@@ -75,6 +76,7 @@ export function TodoList() {
             });
             const newTask = response.data;
             setTasks(prevTasks => [...prevTasks, newTask]);
+            message.success('task added!');
 
             if (formRef.current) {
                 formRef.current.reset();
@@ -89,6 +91,7 @@ export function TodoList() {
         try {
             const newStatus = currentStatus === 'open' ? 'complete' : 'open';
             const url = `/TodoItems/${taskId}`;
+            console.log(taskId)
 
             const data = {
                 status: newStatus
@@ -96,6 +99,7 @@ export function TodoList() {
 
             const response = await api.put(url, data);
             const updatedTask = response.data;
+            console.log(response.data)
 
             setTasks(prevTasks =>
                 prevTasks.map(task =>
@@ -156,61 +160,17 @@ export function TodoList() {
                 handleEditTask={handleEditTask}
                 handleDeleteTask={handleDeleteTask}
                 handleChangeStatusTask={handleChangeStatusTask}
-
             />
 
+            {isModalOpen && (
+                <ModalEditTask
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                    onSave={(newTitle: string) => handleUpdateTask(taskIdToEdit, newTitle)}
+                    currentTitle={taskTitleToEdit}
+                />
 
-            {/* {
-                tasks.length > 0 ? (
-                    <>
-                        <BoxContainer>
-                            <HeaderContainer>
-                                <TasksDiv>Tasks</TasksDiv>
-                                <ActionsDiv>Actions</ActionsDiv>
-                            </HeaderContainer>
-
-                            {tasks.map(task => (
-                                <DataContainer key={task.id}>
-                                    <TitleDiv style={{ textDecoration: task.status === 'complete' ? 'line-through' : 'none' }}>{task.title}</TitleDiv>
-                                    <ButtonDiv>
-                                        <Tooltip title={task.status === 'open' ? 'task complete?' : 'remake?'}>
-                                            <CompleteButton status={task.status} onClick={() => handleChangeStatusTask(task.id, task.status)}>
-                                                {task.status === 'open' ? <CheckCircleFilled /> : <FireFilled />}
-                                            </CompleteButton>
-                                        </Tooltip>
-
-                                        <Tooltip title="edit task?">
-                                            <EditButton onClick={() => handleEditTask(task.id, task.title, task.status)}>
-                                                <EditFilled />
-                                            </EditButton>
-                                        </Tooltip>
-
-                                        <Tooltip title="delete task?">
-                                            <DeleteButton onClick={() => handleDeleteTask(task.id)}>
-                                                <DeleteFilled />
-                                            </DeleteButton>
-                                        </Tooltip>
-                                    </ButtonDiv>
-                                </DataContainer>
-                            ))}
-
-                        </BoxContainer>
-                        {isModalOpen && (
-                            <ModalEditTask
-                                isOpen={isModalOpen}
-                                onClose={handleCloseModal}
-                                onSave={(newTitle: string) => handleUpdateTask(taskIdToEdit, newTitle)}
-                                currentTitle={taskTitleToEdit}
-                            />
-
-                        )}
-
-                    </>
-                ) : (
-                    <p>No tasks</p>
-                )
-            } */}
-
+            )}
         </>
     )
 }
