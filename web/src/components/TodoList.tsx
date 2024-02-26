@@ -1,24 +1,25 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ButtonSubmit, ContainerForm } from "../styles/FormContainer";
+import { useCallback, useEffect, useState } from "react";
 import { TableData } from "./TableData";
 import { ModalEditTask } from "./Modal";
 import { api } from "../utils/axios";
 import { Task } from "../types/task";
-import { message } from "antd";
+import { Button, Form, Input, message } from "antd";
+import { Store } from "antd/es/form/interface";
+import { ButtonSubmit, DivForm } from "../styles/FormContainer";
+
+
 
 export function TodoList() {
-    const formRef = useRef<HTMLFormElement>(null);
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [taskTitleToEdit, setTaskTitleToEdit] = useState("");
     const [taskIdToEdit, setTaskIdToEdit] = useState<number>(-1);
-
+    const [taskTitleToEdit, setTaskTitleToEdit] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [form] = Form.useForm();
 
     const handleEditTask = (taskId: number, taskTitle: string, taskStatus: string) => {
 
         if (taskStatus === 'complete') {
-
-            alert('Cannot edit a completed task.');
+            message.error('Cannot edit a completed task..');
             return;
         }
         setTaskIdToEdit(taskId);
@@ -29,7 +30,7 @@ export function TodoList() {
     const handleUpdateTask = async (taskId: number, newTitle: string) => {
 
         if (!newTitle || newTitle.trim() === "") {
-            alert("Please enter a title for the task.");
+            message.error('Please, enter a title for the task.');
             return;
         }
 
@@ -48,6 +49,7 @@ export function TodoList() {
                 )
             );
             setIsModalOpen(false);
+            message.success('updated task')
             handleGetTask();
         } catch (error) {
             console.error('Error updating task:', error);
@@ -58,19 +60,11 @@ export function TodoList() {
         setIsModalOpen(false);
     };
 
-    const handleAddTask = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
 
-        const formData = new FormData(e.currentTarget);
-        const taskTitle = formData.get("taskTitle") as string;
-
-        if (!taskTitle || taskTitle.trim() === "") {
-            message.error('Please enter a title for the task.');
-            return;
-        }
+    const handleAddTask = async (values: Store) => {
+        const taskTitle = values.taskTitle;
 
         try {
-
             const response = await api.post('/TodoItems', {
                 title: taskTitle
             });
@@ -78,14 +72,13 @@ export function TodoList() {
             setTasks(prevTasks => [...prevTasks, newTask]);
             message.success('task added!');
 
-            if (formRef.current) {
-                formRef.current.reset();
-            }
+            form.resetFields();
 
         } catch (error) {
             console.error('Error adding new tasks:', error);
         }
     };
+
 
     const handleChangeStatusTask = async (taskId: number, currentStatus: string) => {
         try {
@@ -99,7 +92,6 @@ export function TodoList() {
 
             const response = await api.put(url, data);
             const updatedTask = response.data;
-            console.log(response.data)
 
             setTasks(prevTasks =>
                 prevTasks.map(task =>
@@ -120,6 +112,7 @@ export function TodoList() {
                 setTasks(prevTasks =>
                     prevTasks.filter(task => task.id !== taskId)
                 );
+                message.success('deleted task')
             } catch (error) {
                 console.error('Error when deleting task:', error);
             }
@@ -143,24 +136,31 @@ export function TodoList() {
 
     return (
         <>
-            <ContainerForm ref={formRef} onSubmit={handleAddTask} >
-                <input
-                    name="taskTitle"
-                    type="text"
-                    autoComplete="off"
-                    maxLength={50}
-                />
-                <ButtonSubmit type="submit">
-                    Add task
-                </ButtonSubmit>
-            </ContainerForm>
 
-            <TableData
-                tasks={tasks}
-                handleEditTask={handleEditTask}
-                handleDeleteTask={handleDeleteTask}
-                handleChangeStatusTask={handleChangeStatusTask}
-            />
+            <DivForm form={form} onFinish={() => handleAddTask}>
+
+                <Form.Item
+                    name="taskTitle"
+                    rules={[{ required: true, message: 'Please enter a title for the task.' }]}
+                >
+                    <Input type="text" autoComplete="off" maxLength={50} />
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit">Add task</Button>
+                </Form.Item>
+
+            </DivForm>
+
+
+
+            {tasks.length > 0 ? (
+                <TableData
+                    tasks={tasks}
+                    handleEditTask={handleEditTask}
+                    handleDeleteTask={handleDeleteTask}
+                    handleChangeStatusTask={handleChangeStatusTask}
+                />
+            ) : (<p>No tasks</p>)}
 
             {isModalOpen && (
                 <ModalEditTask

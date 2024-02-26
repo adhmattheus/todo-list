@@ -1,36 +1,21 @@
+import { Button, Form } from "antd";
 import styled from "styled-components";
 
-export const ContainerForm = styled.form`
+export const DivForm = styled(Form)`
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    width: 80%;
-    padding-bottom: 20px;
-    padding-top: 20px;
-
-    input[type="text"] {
-        padding: 8px;
-        margin-right: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-
-        &:focus{
-            outline: 2px solid #13678A;
-        }
-    }   
+    flex-direction: row;    
 `;
 
-export const ButtonSubmit = styled.button`
-   
-        padding: 8px 16px;
-        background-color: #13678A;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        outline: none;
+export const ButtonSubmit = styled(Button)`
+                padding: 8px 16px !important;
+        background-color: #13678A !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        outline: none !important;
 
-        &:hover {
+        :hover {
             background-color: #9AEBA3;
         }
 `;
