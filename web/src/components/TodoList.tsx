@@ -5,7 +5,8 @@ import { api } from "../utils/axios";
 import { Task } from "../types/task";
 import { Button, Form, Input, message } from "antd";
 import { Store } from "antd/es/form/interface";
-import { ButtonSubmit, DivForm } from "../styles/FormContainer";
+import { DivForm } from "../styles/FormContainer";
+import { addTask, deleteTask, getTask, updateTaskStatus } from "../services/taskServices";
 
 
 
@@ -16,20 +17,48 @@ export function TodoList() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [form] = Form.useForm();
 
-    const handleEditTask = (taskId: number, taskTitle: string, taskStatus: string) => {
+    const handleGetTask = useCallback(async () => {
+        setTasks(await getTask());
+    }, []);
 
-        if (taskStatus === 'complete') {
+    useEffect(() => {
+        handleGetTask();
+    }, [handleGetTask]);
+
+    const handleAddTask = async (values: Store) => {
+        const title = values.title;
+        const newTask = await addTask(title);
+        setTasks(prevTasks => [...prevTasks, newTask]);
+        message.success('Task added!');
+        form.resetFields();
+    };
+
+    const handleDeleteTask = async (taskId: number) => {
+        const isConfirmed = window.confirm("Are you sure you want to delete this task?");
+        if (isConfirmed) {
+            await deleteTask(taskId);
+            setTasks(prevTasks =>
+                prevTasks.filter(task => task.id !== taskId)
+            );
+            message.success('Deleted task');
+        }
+    };
+
+
+    const handleEditTask = (task: Task) => {
+        if (task.status === 'complete') {
             message.error('Cannot edit a completed task..');
             return;
         }
-        setTaskIdToEdit(taskId);
-        setTaskTitleToEdit(taskTitle);
+        setTaskIdToEdit(task.id);
+        setTaskTitleToEdit(task.title);
         setIsModalOpen(true);
     };
 
-    const handleUpdateTask = async (taskId: number, newTitle: string) => {
 
-        if (!newTitle || newTitle.trim() === "") {
+    const handleUpdateTask = async (taskId: number, title: string) => {
+
+        if (!title || title.trim() === "") {
             message.error('Please, enter a title for the task.');
             return;
         }
@@ -37,7 +66,7 @@ export function TodoList() {
         try {
             const url = `/TodoItems/${taskId}`;
             const data = {
-                title: newTitle
+                title,
             };
 
             const response = await api.put(url, data);
@@ -60,96 +89,34 @@ export function TodoList() {
         setIsModalOpen(false);
     };
 
-
-    const handleAddTask = async (values: Store) => {
-        const taskTitle = values.taskTitle;
-
-        try {
-            const response = await api.post('/TodoItems', {
-                title: taskTitle
-            });
-            const newTask = response.data;
-            setTasks(prevTasks => [...prevTasks, newTask]);
-            message.success('task added!');
-
-            form.resetFields();
-
-        } catch (error) {
-            console.error('Error adding new tasks:', error);
-        }
-    };
-
-
-    const handleChangeStatusTask = async (taskId: number, currentStatus: string) => {
-        try {
-            const newStatus = currentStatus === 'open' ? 'complete' : 'open';
-            const url = `/TodoItems/${taskId}`;
-            console.log(taskId)
-
-            const data = {
-                status: newStatus
-            };
-
-            const response = await api.put(url, data);
-            const updatedTask = response.data;
-
-            setTasks(prevTasks =>
-                prevTasks.map(task =>
-                    task.id === updatedTask.id ? updatedTask : task
-                )
-            );
-            handleGetTask();
-        } catch (error) {
-            console.error('Error updating task status:', error);
-        }
-    };
-
-    const handleDeleteTask = async (taskId: number) => {
-        const isConfirmed = window.confirm("Are you sure you want to delete this task?");
-        if (isConfirmed) {
-            try {
-                await api.delete(`/TodoItems/${taskId}`);
-                setTasks(prevTasks =>
-                    prevTasks.filter(task => task.id !== taskId)
-                );
-                message.success('deleted task')
-            } catch (error) {
-                console.error('Error when deleting task:', error);
-            }
-        }
-    };
-
-    const handleGetTask = useCallback(async () => {
-        try {
-            const response = await api.get('/TodoItems');
-            setTasks(response.data);
-
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    }, []);
-
-    useEffect(() => {
+    const handleChangeStatusTask = async (task: Task) => {
+        const updatedTask = await updateTaskStatus(task);
+        setTasks(prevTasks =>
+            prevTasks.map(t =>
+                t.id === updatedTask.id ? updatedTask : t
+            )
+        );
         handleGetTask();
-    }, [handleGetTask]);
+    };
+
 
 
     return (
         <>
 
-            <DivForm form={form} onFinish={() => handleAddTask}>
-
-                <Form.Item
-                    name="taskTitle"
-                    rules={[{ required: true, message: 'Please enter a title for the task.' }]}
-                >
-                    <Input type="text" autoComplete="off" maxLength={50} />
-                </Form.Item>
-                <Form.Item>
-                    <Button type="primary" htmlType="submit">Add task</Button>
-                </Form.Item>
-
-            </DivForm>
+            <Form form={form} onFinish={handleAddTask}>
+                <DivForm>
+                    <Form.Item
+                        name="title"
+                        rules={[{ required: true, message: 'Please enter a title for the task.' }]}
+                    >
+                        <Input type="text" autoComplete="off" maxLength={50} />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">Add task</Button>
+                    </Form.Item>
+                </DivForm>
+            </Form>
 
 
 
@@ -174,3 +141,5 @@ export function TodoList() {
         </>
     )
 }
+
+

@@ -24,13 +24,13 @@ export function TableData({ tasks, handleChangeStatusTask, handleEditTask, handl
                 <ButtonDiv>
                     <Space size="middle" className="ant-space ant-space-align-right"> {/* Aplicando classes do Ant Design */}
                         <Tooltip title={record.status === 'open' ? 'task complete?' : 'remake?'}>
-                            <CompleteButton status={record.status} onClick={() => handleChangeStatusTask(record.id, record.status)}>
+                            <CompleteButton status={record.status} onClick={() => handleChangeStatusTask(record)}>
                                 {record.status === 'open' ? <CheckCircleFilled /> : <FireFilled />}
                             </CompleteButton>
                         </Tooltip>
 
                         <Tooltip title="edit task?">
-                            <EditButton onClick={() => handleEditTask(record.id, record.title, record.status)}>
+                            <EditButton onClick={() => handleEditTask(record)}>
                                 <EditFilled />
                             </EditButton>
                         </Tooltip>
