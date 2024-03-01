@@ -1,6 +1,6 @@
+import { ActionsHeader, ButtonDiv, TableContainer, TaskHeader } from "../styles/TableContainer";
 import { CheckCircleFilled, DeleteFilled, EditFilled, FireFilled } from "@ant-design/icons";
 import { CompleteButton, DeleteButton, EditButton } from "../styles/BoxContainer";
-import { ActionsHeader, ButtonDiv, TableContainer, TaskHeader } from "../styles/TableContainer";
 import { TableDataProps } from "../types/TableDataProps";
 import { Space, Table, Tooltip } from "antd";
 import { Task } from "../types/task"
